@@ -51,10 +51,15 @@ EXTRA_DIST+=\
 bin_PROGRAMS=bfc
 
 bfc_SOURCES=\
-	bfd.c
+	bfc_main.c \
+	bfc.c \
 	$(VOID)
 bfc_CFLAGS=\
+	$(GIO_CFLAGS) \
+	$(GLIB_CFLAGS) \
 	$(VOID)
 bfc_LDADD=\
 	-lbfd \
+	$(GIO_LIBS) \
+	$(GLIB_LIBS) \
 	$(VOID)

@@ -128,6 +128,8 @@ fi
 # Note: keep sorted alphabetically 
 #
 
+PKG_CHECK_MODULES([GIO], [gio-2.0])
+PKG_CHECK_MODULES([GLIB], [glib-2.0])
 AC_CHECK_LIB([bfd], [bfd_get_error])
 
 #
