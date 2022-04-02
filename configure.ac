@@ -39,7 +39,7 @@ AC_CANONICAL_TARGET
 #
 # Automake
 #
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 #
 # Extract mayor, minor and micro version
@@ -83,6 +83,14 @@ AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 
 PKG_PROG_PKG_CONFIG
+
+AC_ARG_VAR([LUA])
+AC_PATH_PROGS([LUA], [luajit lua lua5.1 lua5.2 lua5.3], [no])
+if test "x$LUA" = "xno"; then
+  AC_MSG_FAILURE([No Lua interpreter found on your system])
+fi
+
+AC_SUBST([DYNASM], [\${LUA}\ \${top_builddir}/src/dynasm/dynasm.lua])
 
 #
 # Custom build options
@@ -144,9 +152,16 @@ AC_CHECK_LIB([bfd], [bfd_get_error])
 # Checks for typedefs, structures, and compiler characteristics.
 #
 
+AC_TYPE_SIZE_T
+AC_CHECK_TYPES([ptrdiff_t])
+
 #
 # Checks for library functions.
 #
+
+AC_FUNC_REALLOC
+AC_CHECK_FUNCS([memcpy])
+AC_CHECK_FUNCS([memset])
 
 #
 # Prepare output
@@ -155,6 +170,7 @@ AC_CHECK_LIB([bfd], [bfd_get_error])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 src/Makefile
+src/backend/Makefile
 Makefile
 ])
 

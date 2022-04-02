@@ -15,16 +15,33 @@
  * along with bfc (BrainFuck Compiler).  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include <config.h>
-#include <gio/gio.h>
-#include <options.h>
+#ifndef __BFC_CODEGEN__
+#define __BFC_CODEGEN__ 1
+#include <glib.h>
 
-int
-bfcc_main (BfcOptions* options, GError** error);
-
-int
-bfc_main (BfcOptions* options, GError** error)
+typedef enum
 {
-  g_assert (options->n_inputs == 1);
-return bfcc_main (options, error);
+  BFC_CODEGEN_ARCH_X86_64,
+} BfcCodegenArch;
+
+typedef struct _BfcCodegen BfcCodegen;
+typedef struct _BfcCodegenBackend BfcCodegenBackend;
+
+#if __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+struct _BfcCodegenBackend
+{
+  gpointer* labels;
+  guint n_labels;
+  guint labelsz;
+  guint n_sections;
+  guint main;
+};
+
+#if __cplusplus
 }
+#endif // __cplusplus
+
+#endif // __BFC_CODEGEN__

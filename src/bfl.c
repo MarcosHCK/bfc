@@ -20,11 +20,7 @@
 #include <options.h>
 
 int
-bfcc_main (BfcOptions* options, GError** error);
-
-int
-bfc_main (BfcOptions* options, GError** error)
+bfl_main (BfcOptions* options, GError** error)
 {
-  g_assert (options->n_inputs == 1);
-return bfcc_main (options, error);
+  return 0;
 }

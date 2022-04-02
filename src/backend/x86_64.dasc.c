@@ -16,10 +16,48 @@
  *
  */
 #include <config.h>
-#include <gio/gio.h>
-#include <options.h>
+#include <codegen.h>
 
-void
-bfc_main (BfcOptions* options, GError** error)
+#include <dynasm.h>
+#include <dynasm/dasm_x86.h>
+
+|.arch x64
+|.section code
+|.globals globl_
+|.actionlist actions
+|.globalnames globl_names
+|.externnames extern_names
+
+const BfcCodegenBackend
+backend_x64_64 =
+{
+  NULL,
+  globl__MAX,
+  globl__main,
+  DASM_MAXSECTION,
+  sizeof (guint64),
+};
+
+int
+backend_x86_64_init (Dst_DECL)
+{
+  dasm_setup (Dst, actions);
+  dasm_growpc (Dst, 0);
+
+|.code
+|->_main:
+| push rbp
+| mov rsp, rbp
+}
+
+int
+backend_x86_64_fini (Dst_DECL)
+{
+| leave
+| ret
+}
+
+int
+backend_x86_64_consume (Dst_DECL, BfcCodegenBackend* backend, GError** error)
 {
 }

@@ -15,16 +15,29 @@
  * along with bfc (BrainFuck Compiler).  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include <config.h>
-#include <gio/gio.h>
-#include <options.h>
+#ifndef __DYNASM__
+#define __DYNASM__ 1
+#include <glib.h>
 
-int
-bfcc_main (BfcOptions* options, GError** error);
+#define DASM_FDEF G_GNUC_INTERNAL
+#define DASM_EXTERN(ctx, addr, idx, type) 0
+#define DASM_M_GROW(ctx, t, p, sz, need) \
+  G_STMT_START { \
+    size_t _sz = (sz), _need = (need); \
+    if (_sz < _need) \
+    { \
+      if (_sz < 16) _sz = 16; \
+      while (_sz < _need) \
+        _sz += _sz; \
+      (p) = (t *) g_realloc ((p), _sz); \
+      if ((p) == NULL) \
+        exit (1); \
+      (sz) = _sz; \
+    } \
+  } G_STMT_END
+#define DASM_M_FREE(ctx, p, sz) g_free(p);
 
-int
-bfc_main (BfcOptions* options, GError** error)
-{
-  g_assert (options->n_inputs == 1);
-return bfcc_main (options, error);
-}
+#define ___DYNASM_FILE__ 1
+#include <dynasm/dasm_proto.h>
+
+#endif // __DYNASM__

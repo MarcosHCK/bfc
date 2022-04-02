@@ -20,11 +20,12 @@
 #include <options.h>
 
 int
-bfcc_main (BfcOptions* options, GError** error);
-
-int
-bfc_main (BfcOptions* options, GError** error)
+bfcc_main (BfcOptions* options, GError** error)
 {
-  g_assert (options->n_inputs == 1);
-return bfcc_main (options, error);
+  if (options->n_inputs > 1)
+    {
+      g_warning ("Single files only, use bfc for multiple ones");
+      return -1;
+    }
+return 0;
 }

@@ -31,14 +31,6 @@ CLEANFILES=
 VOID=
 
 #
-# Subdirectories
-#
-
-SUBDIRS=\
-	backend \
-	$(VOID)
-
-#
 # Extras
 #
 
@@ -52,24 +44,35 @@ EXTRA_DIST+=\
 # Binaries and libraries
 #
 
-bin_PROGRAMS=bfc
+noinst_LTLIBRARIES=libbundle.la
 
-bfc_SOURCES=\
-	bfc.c \
-	bfcc.c \
-	bfl.c \
-	codegen.c \
-	main.c \
-	options.c \
-	$(VOID)
-bfc_CFLAGS=\
-	-DG_LOG_DOMAIN=\"Bfc\" \
+libbundle_la_SOURCES=\
+  x86_64.c \
+  $(VOID)
+libbundle_la_CFLAGS=\
+	-DG_LOG_DOMAIN=\"Bfc.Backend\" \
+  -I${top_builddir}/src/ \
 	$(GIO_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(VOID)
-bfc_LDADD=\
-	backend/libbundle.la \
-	-lbfd \
+libbundle_la_LIBADD=\
 	$(GIO_LIBS) \
 	$(GLIB_LIBS) \
 	$(VOID)
+libbundle_la_LDFLAGS=\
+	-static \
+	$(VOID)
+
+#
+# Custom extensions
+#
+
+SUFFIXES=.dasc.c .c
+
+DYNASM_CFLAGS=\
+	-D DEBUG=\"${DEBUG}\" \
+	-D DEVELOPER=\"${DEVELOPER}\" \
+	$(VOID)
+
+.dasc.c.c:
+	$(DYNASM) $(DYNASM_CFLAGS) -o $@ $<

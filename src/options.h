@@ -24,6 +24,20 @@ typedef struct
   GOutputStream* output;
   GInputStream** inputs;
   guint n_inputs;
+  gboolean dontlink;
 } BfcOptions;
+
+typedef enum
+{
+  BFC_OPEN_READ = 'r',
+  BFC_OPEN_WRITE = 'w',
+} BfcOpenMode;
+
+gpointer
+bfc_options_open (const gchar* filename, BfcOpenMode mode, GError** error);
+void
+bfc_options_emit (BfcOptions* options, GString* string);
+void
+bfc_options_clear (BfcOptions* options);
 
 #endif // __BFC_OPTIONS__
