@@ -15,34 +15,36 @@
  * along with bfc (BrainFuck Compiler).  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef __BFC_OPTIONS__
-#define __BFC_OPTIONS__ 1
-#include <gio/gio.h>
+#ifndef __BFC_BFD_ERROR__
+#define __BFC_BFD_ERROR__ 1
+#include <codegen.h>
+#include <bfd.h>
+#include <glib.h>
 
-typedef struct
+#ifndef throw_action
+# define throw_action \
+  G_STMT_START { \
+    g_assert_not_reached (); \
+  } G_STMT_END
+#endif // throw_action
+
+#define throw(code,...) \
+  G_STMT_START { \
+    g_print ("(%s: %i)\r\n", G_STRLOC, __LINE__); \
+    g_set_error \
+    (error, \
+     BFC_CODEGEN_ERROR, \
+     (code), \
+     __VA_ARGS__); \
+    throw_action; \
+  } G_STMT_END
+
+static const gchar*
+bfd_strerror (enum bfd_error error)
 {
-  GOutputStream* output;
-  GInputStream** inputs;
-  guint n_inputs;
-  gboolean strictcode;
-  gboolean dontlink;
-  gchar* arch;
-  gchar* target;
-} BfcOptions;
+  static char buf[32];
+  g_snprintf (buf, sizeof (buf), "bfd error %i", (guint) error);
+return bfd_errmsg (error);
+}
 
-typedef enum
-{
-  BFC_OPEN_READ = 'r',
-  BFC_OPEN_WRITE = 'w',
-} BfcOpenMode;
-
-gpointer
-bfc_options_open (const gchar* filename, BfcOpenMode mode, GError** error);
-const gchar*
-bfc_options_get_stream_filename (gpointer stream);
-void
-bfc_options_emit (BfcOptions* options, GString* string);
-void
-bfc_options_clear (BfcOptions* options);
-
-#endif // __BFC_OPTIONS__
+#endif // __BFC_BFD_ERROR__

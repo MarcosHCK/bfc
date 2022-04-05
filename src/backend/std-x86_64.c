@@ -15,34 +15,33 @@
  * along with bfc (BrainFuck Compiler).  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef __BFC_OPTIONS__
-#define __BFC_OPTIONS__ 1
-#include <gio/gio.h>
+#include <config.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <x86_64.h>
 
-typedef struct
+static uint8_t
+std_getc (BfState* state)
 {
-  GOutputStream* output;
-  GInputStream** inputs;
-  guint n_inputs;
-  gboolean strictcode;
-  gboolean dontlink;
-  gchar* arch;
-  gchar* target;
-} BfcOptions;
+  return (uint8_t) getc (stdin);
+}
 
-typedef enum
+static void
+std_putc (BfState* state, uint8_t c)
 {
-  BFC_OPEN_READ = 'r',
-  BFC_OPEN_WRITE = 'w',
-} BfcOpenMode;
+  putc ((int) c, stdout);
+}
 
-gpointer
-bfc_options_open (const gchar* filename, BfcOpenMode mode, GError** error);
-const gchar*
-bfc_options_get_stream_filename (gpointer stream);
-void
-bfc_options_emit (BfcOptions* options, GString* string);
-void
-bfc_options_clear (BfcOptions* options);
+int
+main (int argc, char* argv[])
+{
+  BfState state;
+  void* tape = malloc (TAPE_SIZE);
+  state.tape = tape;
+  state.getc = std_getc;
+  state.putc = std_putc;
 
-#endif // __BFC_OPTIONS__
+  _main (&state);
+  free (tape);
+return 0;
+}

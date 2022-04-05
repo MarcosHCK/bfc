@@ -16,5 +16,7 @@
 #
 
 libbundle.*
+libstd-*.la
+libstd-*.a
 
 x86_64.c

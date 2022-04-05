@@ -17,28 +17,77 @@
  */
 #ifndef __BFC_CODEGEN__
 #define __BFC_CODEGEN__ 1
-#include <glib.h>
+#include <glib-object.h>
+
+#define BFC_CODEGEN_ERROR (bfc_codegen_error_quark ())
+
+typedef enum
+{
+  BFC_CODEGEN_ERROR_FAILED,
+  BFC_CODEGEN_ERROR_UNKNOWN_SYMBOL,
+  BFC_CODEGEN_ERROR_NESTING_TOO_DEEP,
+  BFC_CODEGEN_ERROR_UNMATCH_LOOP,
+} BfcCodegenError;
 
 typedef enum
 {
   BFC_CODEGEN_ARCH_X86_64,
 } BfcCodegenArch;
 
+#define BFC_TYPE_CODEGEN (bfc_codegen_get_type ())
+#define BFC_CODEGEN(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), BFC_TYPE_CODEGEN, BfcCodegen))
+#define BFC_CODEGEN_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), BFC_TYPE_CODEGEN, BfcCodegenClass))
+#define BFC_IS_CODEGEN(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BFC_TYPE_CODEGEN))
+#define BFC_IS_CODEGEN_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), BFC_TYPE_CODEGEN))
+#define BFC_CODEGEN_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), BFC_TYPE_CODEGEN, BfcCodegenClass))
+
 typedef struct _BfcCodegen BfcCodegen;
-typedef struct _BfcCodegenBackend BfcCodegenBackend;
+typedef struct _BfcCodegenPrivate BfcCodegenPrivate;
+typedef struct _BfcCodegenClass BfcCodegenClass;
 
 #if __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-struct _BfcCodegenBackend
+GQuark
+bfc_codegen_error_quark (void) G_GNUC_CONST;
+GType
+bfc_codegen_arch_get_type (void) G_GNUC_CONST;
+GType
+bfc_codegen_get_type (void) G_GNUC_CONST;
+
+struct _BfcCodegen
 {
-  gpointer* labels;
-  guint n_labels;
-  guint labelsz;
-  guint n_sections;
-  guint main;
+  GTypeInstance parent_intance;
+  gint ref_count;
 };
+
+struct _BfcCodegenClass
+{
+  GTypeClass parent_class;
+  const gchar* bfd_arch;
+  gboolean (*dump) (BfcCodegen* codegen, gpointer abfd, GError** error);
+  guint (*consume) (BfcCodegen* codegen, gconstpointer buffer, gsize size, GError** error);
+  void (*freeze) (BfcCodegen* codegen, GError** error);
+  void (*finalize) (BfcCodegen* codegen);
+};
+
+gpointer
+bfc_codegen_new (BfcCodegenArch arch);
+gpointer
+bfc_codegen_ref (gpointer codegen);
+void
+bfc_codegen_unref (gpointer codegen);
+void
+bfc_codegen_set_strict (gpointer codegen, gboolean strict);
+gboolean
+bfc_codegen_get_strict (gpointer codegen);
+gboolean
+bfc_codegen_dump (gpointer codegen, gpointer abfd, GError** error);
+guint
+bfc_codegen_consume (gpointer codegen, gconstpointer buffer, gsize size, GError** error);
+void
+bfc_codegen_freeze (gpointer codegen, GError** error);
 
 #if __cplusplus
 }

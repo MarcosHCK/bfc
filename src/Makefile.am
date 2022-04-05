@@ -43,6 +43,8 @@ SUBDIRS=\
 #
 
 EXTRA_DIST+=\
+	dynasm/Readme.md \
+	bfd_error.h \
 	codegen.h \
 	dynasm.h \
 	options.h \

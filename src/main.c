@@ -18,6 +18,7 @@
 #include <config.h>
 #include <gio/gio.h>
 #include <options.h>
+#include <bfd.h>
 
 static const gchar* description = {"Description"};
 static const gchar* summary = {"Summary"};
@@ -47,6 +48,8 @@ main (int argc, char* argv[])
   guint i;
 
   const gchar* output = "-";
+  const gchar* arch = "x86_64";
+  const gchar* target = "default";
 
   /*
    *
@@ -75,6 +78,9 @@ main (int argc, char* argv[])
   const GOptionEntry entries[] =
   {
     { "output", 'o', 0, G_OPTION_ARG_FILENAME, &output, "Place the output into <file>", "<file>" },
+    { "architecture", 'A', 0, G_OPTION_ARG_STRING, &arch, "Set architecture", "ARCH" },
+    { "oformat", '\0', 0, G_OPTION_ARG_STRING, &target, "Specify target of output file", "FORMAT" },
+    { "strict", '\0', 0, G_OPTION_ARG_NONE, &(options.strictcode), "Enforce code strictness", NULL },
     { NULL, 0, 0, 0, NULL, NULL, NULL},
   };
 
@@ -157,6 +163,8 @@ main (int argc, char* argv[])
     }
 
   options.inputs = g_new (GInputStream*, argc - 1);
+  options.arch = (gchar*) arch;
+  options.target = (gchar*) target;
 
   for (i = 0; i < argc - 1; i++)
     {
@@ -188,6 +196,7 @@ main (int argc, char* argv[])
    */
 
   g_assert (front != NULL);
+  bfd_init ();
 
   result = front (&options, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))

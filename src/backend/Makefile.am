@@ -35,9 +35,7 @@ VOID=
 #
 
 EXTRA_DIST+=\
-	codegen.h \
-	dynasm.h \
-	options.h \
+	x86_64.h \
 	$(VOID)
 
 #
@@ -45,12 +43,19 @@ EXTRA_DIST+=\
 #
 
 noinst_LTLIBRARIES=libbundle.la
+pkglib_LTLIBRARIES=libstd-x86_64.la
 
 libbundle_la_SOURCES=\
-  x86_64.c \
+	x86_64.c \
   $(VOID)
 libbundle_la_CFLAGS=\
 	-DG_LOG_DOMAIN=\"Bfc.Backend\" \
+  -I${top_builddir}/src/ \
+	-D__BACKEND__=1 \
+	$(GIO_CFLAGS) \
+	$(GLIB_CFLAGS) \
+	$(VOID)
+libbundle_la_CCASFLAGS=\
   -I${top_builddir}/src/ \
 	$(GIO_CFLAGS) \
 	$(GLIB_CFLAGS) \
@@ -60,6 +65,20 @@ libbundle_la_LIBADD=\
 	$(GLIB_LIBS) \
 	$(VOID)
 libbundle_la_LDFLAGS=\
+	-static \
+	$(VOID)
+
+libstd_x86_64_la_SOURCES=\
+	std-x86_64.c \
+	$(VOID)
+libstd_x86_64_la_CFLAGS=\
+	$(VOID)
+libstd_x86_64_la_LIBADD=\
+	$(VOID)
+libstd_x86_64_la_LDFLAGS=\
+	-rpath ${pkglibdir} \
+	-release ${PACKAGE_RELEASE} \
+	-version-info ${PACKAGE_VERSION_MAYOR}:${PACKAGE_VERSION_MINOR}:${PACKAGE_VERSION_MICRO} \
 	-static \
 	$(VOID)
 

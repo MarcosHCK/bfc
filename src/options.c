@@ -112,6 +112,15 @@ bfc_options_open (const gchar* filename, BfcOpenMode mode, GError** error)
 return stream;
 }
 
+const gchar*
+bfc_options_get_stream_filename (gpointer stream)
+{
+  return (const gchar*)
+  g_object_get_qdata
+  (G_OBJECT (stream),
+   bfc_options_filename_quark ());
+}
+
 void
 bfc_options_emit (BfcOptions* options, GString* string)
 {
@@ -124,7 +133,7 @@ bfc_options_emit (BfcOptions* options, GString* string)
   if (options->output)
     {
       filename =
-      g_object_get_qdata (G_OBJECT (options->output), bfc_options_filename_quark ());
+      bfc_options_get_stream_filename (options->output);
 #if DEVELOPER == 1
       g_assert (filename != NULL);
  #endif // DEVELOPER
@@ -142,7 +151,7 @@ bfc_options_emit (BfcOptions* options, GString* string)
       if (options->inputs[i])
         {
           filename =
-          g_object_get_qdata (G_OBJECT (options->inputs[i]), bfc_options_filename_quark ());
+          bfc_options_get_stream_filename (options->inputs[i]);
 #if DEVELOPER == 1
           g_assert (filename != NULL);
 #endif // DEVELOPER
