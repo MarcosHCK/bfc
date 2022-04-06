@@ -66,6 +66,8 @@ bfc_SOURCES=\
 	$(VOID)
 bfc_CFLAGS=\
 	-DG_LOG_DOMAIN=\"Bfc\" \
+	-DABSTOPBUILDDIR=\"${abs_top_builddir}\" \
+	-DPKGLIBDIR=\"${pkglibdir}\" \
 	$(GIO_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(VOID)

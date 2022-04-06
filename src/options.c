@@ -121,15 +121,29 @@ bfc_options_get_stream_filename (gpointer stream)
    bfc_options_filename_quark ());
 }
 
-void
-bfc_options_emit (BfcOptions* options, GString* string)
+gchar**
+bfc_options_emitv (BfcOptions* options)
 {
   const gchar* filename = NULL;
+  GPtrArray* av;
   guint i;
 
-  if (options->dontlink)
-    g_string_append (string, "-c ");
+  av = g_ptr_array_new ();
 
+  if (options->dontlink)
+    g_ptr_array_add (av, g_strdup ("-c"));
+  if (options->strictcode)
+    g_ptr_array_add (av, g_strdup ("--strict"));
+  if (options->arch)
+    {
+      g_ptr_array_add (av, g_strdup ("--architecture"));
+      g_ptr_array_add (av, g_strdup (options->arch));
+    }
+  if (options->target)
+    {
+      g_ptr_array_add (av, g_strdup ("--oformat"));
+      g_ptr_array_add (av, g_strdup (options->target));
+    }
   if (options->output)
     {
       filename =
@@ -137,14 +151,16 @@ bfc_options_emit (BfcOptions* options, GString* string)
 #if DEVELOPER == 1
       g_assert (filename != NULL);
  #endif // DEVELOPER
-      g_string_append_printf (string, "-o '%s' ", filename);
+      g_ptr_array_add (av, g_strdup ("-o"));
+      g_ptr_array_add (av, g_strdup (filename));
     }
   else
     {
-      g_string_append (string, "-o - ");
+      g_ptr_array_add (av, g_strdup ("-o"));
+      g_ptr_array_add (av, g_strdup ("-"));
     }
 
-  g_string_append (string, "-- ");
+  g_ptr_array_add (av, g_strdup ("--"));
 
   for (i = 0; i < options->n_inputs; i++)
     {
@@ -155,13 +171,16 @@ bfc_options_emit (BfcOptions* options, GString* string)
 #if DEVELOPER == 1
           g_assert (filename != NULL);
 #endif // DEVELOPER
-          g_string_append_printf (string, "'%s' ", filename);
+          g_ptr_array_add (av, g_strdup (filename));
         }
       else
         {
-          g_string_append (string, "- ");
+          g_ptr_array_add (av, g_strdup ("-"));
         }
     }
+
+  g_ptr_array_add (av, NULL);
+return (gchar**) g_ptr_array_free (av, FALSE);
 }
 
 static void
@@ -173,7 +192,8 @@ close_stream (gpointer stream)
   else if (G_IS_OUTPUT_STREAM (stream))
     g_output_stream_close (stream, NULL, &tmp_err);
 #if DEVELOPER == 1
-  else g_assert_not_reached ();
+  else if (stream != NULL)
+    g_assert_not_reached ();
 #endif // DEVELOPER
   if (G_UNLIKELY (tmp_err != NULL))
     {

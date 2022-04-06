@@ -40,8 +40,8 @@ gpointer
 bfc_options_open (const gchar* filename, BfcOpenMode mode, GError** error);
 const gchar*
 bfc_options_get_stream_filename (gpointer stream);
-void
-bfc_options_emit (BfcOptions* options, GString* string);
+gchar**
+bfc_options_emitv (BfcOptions* options);
 void
 bfc_options_clear (BfcOptions* options);
 

@@ -68,6 +68,9 @@ bfcc_main (BfcOptions* options, GError** error)
           break;
         }
       }
+
+    g_type_class_unref (klass);
+
     if (codegen == NULL)
       {
         g_warning ("Invalid architecture type '%s'", options->arch);
