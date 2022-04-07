@@ -52,6 +52,7 @@ bfc_codegen_arch_get_type (void)
       static const GEnumValue values[] =
       {
         {BFC_CODEGEN_ARCH_X86_64, "BFC_CODEGEN_ARCH_X86_64", "x86_64"},
+        {0, NULL, NULL},
       };
 
       g_type =

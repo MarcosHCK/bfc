@@ -16,12 +16,10 @@
  *
  */
 #include <config.h>
+#include <codegen.h>
 #include <gio/gio.h>
 #include <options.h>
 #include <bfd.h>
-
-static const gchar* description = {"Description"};
-static const gchar* summary = {"Summary"};
 
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
@@ -42,10 +40,14 @@ main (int argc, char* argv[])
   GError* tmp_err = NULL;
   BfcOptions options = {0};
   gpointer stream = NULL;
+  gchar* description = NULL;
+  gchar* summary = NULL;
   gchar* argv0 = NULL;
   BfcMain front = NULL;
   int result = 0;
   guint i;
+
+  bfd_init ();
 
   const gchar* output = "-";
   const gchar* arch = "x86_64";
@@ -84,6 +86,59 @@ main (int argc, char* argv[])
     { NULL, 0, 0, 0, NULL, NULL, NULL},
   };
 
+  {
+    GString* str = g_string_sized_new (64);
+
+    {
+      GEnumClass* klass = NULL;
+      GEnumValue* value = NULL;
+      GType g_type;
+      guint i;
+
+      g_type = bfc_codegen_arch_get_type ();
+      klass = g_type_class_ref (g_type);
+      g_string_append (str, "Arch: ");
+
+      for (i = 0; i < klass->n_values; i++)
+        {
+          value = &(klass->values[i]);
+
+          if (i > 0)
+          g_string_append_c (str, ' ');
+          g_string_append (str, value->value_nick);
+        }
+
+      g_string_append (str, "\r\n");
+      g_type_class_unref (klass);
+    }
+
+    {
+      g_string_append (str, "Targets: ");
+      const gchar** targets = bfd_target_list ();
+      guint i;
+
+      for (i = 0; targets[i]; i++)
+        {
+          if (i > 0)
+          g_string_append_c (str, ' ');
+          g_string_append (str, targets[i]);
+        }
+
+      g_string_append (str, "\r\n");
+    }
+
+    description =
+    g_string_free (str, FALSE);
+  }
+
+  {
+    GString* str = g_string_sized_new (64);
+    g_string_append (str, "Copyright 2021-2025 MarcosHCK");
+
+    summary =
+    g_string_free (str, FALSE);
+  }
+
   context =
   g_option_context_new (NULL);
   g_option_context_add_main_entries (context, entries, "en_US");
@@ -93,6 +148,8 @@ main (int argc, char* argv[])
   g_option_context_set_strict_posix (context, FALSE);
   g_option_context_set_summary (context, summary);
   g_option_context_set_translation_domain (context, "en_US");
+  _g_free0 (description);
+  _g_free0 (summary);
 
   /*
    *
@@ -196,7 +253,6 @@ main (int argc, char* argv[])
    */
 
   g_assert (front != NULL);
-  bfd_init ();
 
   result = front (&options, &tmp_err);
   if (G_UNLIKELY (tmp_err != NULL))
