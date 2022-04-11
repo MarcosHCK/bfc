@@ -32,6 +32,7 @@ typedef enum
 typedef enum
 {
   BFC_CODEGEN_ARCH_X86_64,
+  BFC_CODEGEN_ARCH_I386,
 } BfcCodegenArch;
 
 #define BFC_TYPE_CODEGEN (bfc_codegen_get_type ())

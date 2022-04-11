@@ -15,35 +15,25 @@
  * along with bfc (BrainFuck Compiler).  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include <config.h>
-#include <std-x86_64.h>
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef __BACKEND_I386__
+#define __BACKEND_I386__ 1
+#include <stdint.h>
 
-static uint8_t
-std_getc (BfState* state)
+typedef struct _BfState BfState;
+static const int TAPE_SIZE = 8192;
+
+struct _BfState
 {
-  return (uint8_t) getc (stdin);
-}
+  uint8_t *tape;
+  uint8_t (*getc)(BfState *state);
+  void (*putc)(BfState *state, uint8_t c);
+} __attribute__((packed, aligned(1)));
 
-static void
-std_putc (BfState* state, uint8_t c)
-{
-  putc ((int) c, stdout);
-}
+/*
+ * Entry point
+ *
+ */
 
-int
-main (int argc, char* argv[])
-{
-  BfState state = {0};
-  void* tape = NULL;
+void _main(BfState *state);
 
-  tape = malloc (TAPE_SIZE);
-  state.tape = tape;
-  state.getc = std_getc;
-  state.putc = std_putc;
-
-  _main (&state);
-  free (tape);
-return 0;
-}
+#endif // __BACKEND_I386__

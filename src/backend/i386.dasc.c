@@ -24,44 +24,37 @@
 #include <bfd_error.h>
 
 #include <dynasm.h>
-#include <dynasm/dasm_x86.h>
-#include <std-x86_64.h>
+//#include <dynasm/dasm_x86.h>
+#include <std-i386.h>
 
 #define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
 
 #if __BACKEND__
-|.arch x64
+|.arch x86
 |.section code
 |.globals globl_
 |.actionlist actions
 |.globalnames globl_names
 |.externnames extern_names
 
-|.define rTape, rbx
-|.define rState, r12
+|.define rTape, ebx
+|.define rState, ebp
 
-|.if G_OS_WINDOWS
-  |.define rTapeBegin, rsi
-  |.define rTapeEnd, rdi
-  |.define rArg1, rcx
-  |.define rArg2, rdx
-|.else
-  |.define rTapeBegin, r13
-  |.define rTapeEnd, r14
-  |.define rArg1, rdi
-  |.define rArg2, rsi
-|.endif
+|.define rTapeBegin, esi
+|.define rTapeEnd, edi
 
 |.macro prepcall1, arg1
-| mov rArg1, arg1
+| push arg1
 |.endmacro
 
 |.macro prepcall2, arg1, arg2
-| mov rArg1, arg1
-| mov rArg2, arg2
+| push arg2
+| push arg1
 |.endmacro
 
-|.define postcall, .nop
+|.macro postcall, n
+| add esp, 4 * n
+|.endmacro
 
 |.type state, BfState, rState
 #else // !__BACKEND__
@@ -75,17 +68,17 @@ extern const gchar** globl_names;
 #define MAX_NESTING 100
 #define ALIGNMENT 8
 
-#define BFC_TYPE_CODEGENX8664 (bfc_codegen_get_type ())
-#define BFC_CODEGENX8664(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), BFC_TYPE_CODEGENX8664, BfcCodegenX8664))
-#define BFC_CODEGENX8664_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), BFC_TYPE_CODEGENX8664, BfcCodegenX8664Class))
-#define BFC_IS_CODEGENX8664(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BFC_TYPE_CODEGENX8664))
-#define BFC_IS_CODEGENX8664_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), BFC_TYPE_CODEGENX8664))
-#define BFC_CODEGENX8664_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), BFC_TYPE_CODEGENX8664, BfcCodegenX8664Class))
+#define BFC_TYPE_CODEGEN_I386 (bfc_codegen_i386_get_type ())
+#define BFC_CODEGEN_I386(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), BFC_TYPE_CODEGEN_I386, BfcCodegenI386))
+#define BFC_CODEGEN_I386_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), BFC_TYPE_CODEGEN_I386, BfcCodegenI386Class))
+#define BFC_IS_CODEGEN_I386(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BFC_TYPE_CODEGEN_I386))
+#define BFC_IS_CODEGEN_I386_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), BFC_TYPE_CODEGEN_I386))
+#define BFC_CODEGEN_I386_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), BFC_TYPE_CODEGEN_I386, BfcCodegenI386Class))
 
-typedef struct _BfcCodegenX8664 BfcCodegenX8664;
-typedef struct _BfcCodegenX8664Class BfcCodegenX8664Class;
+typedef struct _BfcCodegenI386 BfcCodegenI386;
+typedef struct _BfcCodegenI386Class BfcCodegenI386Class;
 
-struct _BfcCodegenX8664
+struct _BfcCodegenI386
 {
   BfcCodegen parent;
 
@@ -102,14 +95,14 @@ struct _BfcCodegenX8664
   guint npc;
 };
 
-struct _BfcCodegenX8664Class
+struct _BfcCodegenI386Class
 {
   BfcCodegenClass parent;
 };
 
 G_DEFINE_FINAL_TYPE
-(BfcCodegenX8664,
- bfc_codegen_x86_64,
+(BfcCodegenI386,
+ bfc_codegen_i386,
  BFC_TYPE_CODEGEN);
 
 #define at (self->consumed)
@@ -119,9 +112,9 @@ G_DEFINE_FINAL_TYPE
 #define npc (self->npc)
 
 static gboolean
-bfc_codegen_x86_64_class_dump (BfcCodegen* pself, gpointer abfd, GError** error)
+bfc_codegen_i386_class_dump (BfcCodegen* pself, gpointer abfd, GError** error)
 {
-  BfcCodegenX8664* self = (BfcCodegenX8664*) pself;
+  BfcCodegenI386* self = (BfcCodegenI386*) pself;
   dasm_State** Dst = &(self->state);
   gboolean success = TRUE;
   GError* tmp_err = NULL;
@@ -225,9 +218,9 @@ return success;
 }
 
 static guint
-bfc_codegen_x86_64_class_consume (BfcCodegen* pself, gconstpointer buffer, gsize size, GError** error)
+bfc_codegen_i386_class_consume (BfcCodegen* pself, gconstpointer buffer, gsize size, GError** error)
 {
-  BfcCodegenX8664* self = (BfcCodegenX8664*) pself;
+  BfcCodegenI386* self = (BfcCodegenI386*) pself;
   dasm_State** Dst = &(self->state);
   guint8* buf = (gpointer) buffer;
   gboolean strict = FALSE;
@@ -284,8 +277,8 @@ bfc_codegen_x86_64_class_consume (BfcCodegen* pself, gconstpointer buffer, gsize
     break;
   case '.':
 #if __BACKEND__
-    | movzx rax, byte [rTape]
-    | prepcall2 rState, rax
+    | movzx eax, byte [rTape]
+    | prepcall2 rState, eax
     | call aword state->putc
     | postcall 2
 #endif // __BACKEND__
@@ -297,7 +290,7 @@ bfc_codegen_x86_64_class_consume (BfcCodegen* pself, gconstpointer buffer, gsize
     if (buf[0] == '-' && buf[1] == ']')
       {
         buf += 2;
-        | xor rax, rax
+        | xor eax, eax
         | mov byte [rTape], al
       }
     else
@@ -342,9 +335,9 @@ return TRUE;
 }
 #include <stdio.h>
 static void
-bfc_codegen_x86_64_class_freeze (BfcCodegen* pself, GError** error)
+bfc_codegen_i386_class_freeze (BfcCodegen* pself, GError** error)
 {
-  BfcCodegenX8664* self = (BfcCodegenX8664*) pself;
+  BfcCodegenI386* self = (BfcCodegenI386*) pself;
   dasm_State** Dst = &(self->state);
   size_t sz;
 
@@ -362,7 +355,7 @@ bfc_codegen_x86_64_class_freeze (BfcCodegen* pself, GError** error)
   | pop rTapeBegin
   | pop rState
   | pop rTape
-  | ret
+  | ret 4
 #endif // __BACKEND__
 
   dasm_link (Dst, &sz);
@@ -371,29 +364,29 @@ bfc_codegen_x86_64_class_freeze (BfcCodegen* pself, GError** error)
 }
 
 static void
-bfc_codegen_x86_64_class_finalize (BfcCodegen* pself)
+bfc_codegen_i386_class_finalize (BfcCodegen* pself)
 {
-  BfcCodegenX8664* self = (BfcCodegenX8664*) pself;
+  BfcCodegenI386* self = (BfcCodegenI386*) pself;
   dasm_State** Dst = &(self->state);
   g_free (self->labels);
   dasm_free (Dst);
-BFC_CODEGEN_CLASS (bfc_codegen_x86_64_parent_class)->finalize (pself);
+BFC_CODEGEN_CLASS (bfc_codegen_i386_parent_class)->finalize (pself);
 }
 
 static void
-bfc_codegen_x86_64_class_init (BfcCodegenX8664Class* klass)
+bfc_codegen_i386_class_init (BfcCodegenI386Class* klass)
 {
   BfcCodegenClass* oclass = BFC_CODEGEN_CLASS (klass);
 
-  oclass->bfd_arch = "i386:x86-64";
-  oclass->dump = bfc_codegen_x86_64_class_dump;
-  oclass->consume = bfc_codegen_x86_64_class_consume;
-  oclass->freeze = bfc_codegen_x86_64_class_freeze;
-  oclass->finalize = bfc_codegen_x86_64_class_finalize;
+  oclass->bfd_arch = "i386";
+  oclass->dump = bfc_codegen_i386_class_dump;
+  oclass->consume = bfc_codegen_i386_class_consume;
+  oclass->freeze = bfc_codegen_i386_class_freeze;
+  oclass->finalize = bfc_codegen_i386_class_finalize;
 }
 
 static void
-bfc_codegen_x86_64_init (BfcCodegenX8664* self)
+bfc_codegen_i386_init (BfcCodegenI386* self)
 {
   self->codesz = -1;
   self->consumed = 0;
@@ -417,7 +410,7 @@ bfc_codegen_x86_64_init (BfcCodegenX8664* self)
   | push rState
   | push rTapeBegin
   | push rTapeEnd
-  | mov rState, rArg1
+  | mov rState, [esp + 20]
   | mov rTape, state->tape
   | lea rTapeBegin, [rTape-1]
   | lea rTapeEnd, [rTape+TAPE_SIZE-1]
