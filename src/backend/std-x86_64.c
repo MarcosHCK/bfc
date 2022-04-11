@@ -35,8 +35,10 @@ std_putc (BfState* state, uint8_t c)
 int
 main (int argc, char* argv[])
 {
-  BfState state;
-  void* tape = malloc (TAPE_SIZE);
+  BfState state = {0};
+  void* tape = NULL;
+
+  tape = malloc (TAPE_SIZE);
   state.tape = tape;
   state.getc = std_getc;
   state.putc = std_putc;

@@ -27,6 +27,8 @@
 #include <dynasm/dasm_x86.h>
 #include <x86_64.h>
 
+#define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
+
 #if __BACKEND__
 |.arch x64
 |.section code
@@ -71,6 +73,7 @@ extern const gchar** globl_names;
 #endif // __BACKEND__
 
 #define MAX_NESTING 100
+#define ALIGNMENT 8
 
 #define BFC_TYPE_CODEGENX8664 (bfc_codegen_get_type ())
 #define BFC_CODEGENX8664(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), BFC_TYPE_CODEGENX8664, BfcCodegenX8664))
@@ -125,28 +128,16 @@ bfc_codegen_x86_64_class_dump (BfcCodegen* pself, gpointer abfd, GError** error)
   guchar* buffer = NULL;
   asection* sec = NULL;
   gsize codesz = self->codesz;
-  goffset vma = 0;
   guint result = 0;
 
   buffer = g_new (guchar, codesz);
   dasm_encode (Dst, buffer);
-  vma = self->labels[globl__main] - (gpointer) buffer;
-
-  result =
-  bfd_set_start_address (abfd, vma);
-  if (G_UNLIKELY (!result))
-    {
-      g_free (buffer);
-      enum bfd_error err = bfd_get_error ();
-      const gchar* msg = bfd_strerror (err);
-      throw (BFC_CODEGEN_ERROR_FAILED, msg);
-    }
 
   sec =
   bfd_make_section (abfd, ".text");
   if (G_UNLIKELY (sec == NULL))
     {
-      g_free (buffer);
+      _g_free0 (buffer);
       enum bfd_error err = bfd_get_error ();
       const gchar* msg = bfd_strerror (err);
       throw (BFC_CODEGEN_ERROR_FAILED, msg);
@@ -156,7 +147,7 @@ bfc_codegen_x86_64_class_dump (BfcCodegen* pself, gpointer abfd, GError** error)
   bfd_set_section_size (sec, self->codesz);
   if (G_UNLIKELY (!result))
     {
-      g_free (buffer);
+      _g_free0 (buffer);
       enum bfd_error err = bfd_get_error ();
       const gchar* msg = bfd_strerror (err);
       throw (BFC_CODEGEN_ERROR_FAILED, msg);
@@ -166,17 +157,17 @@ bfc_codegen_x86_64_class_dump (BfcCodegen* pself, gpointer abfd, GError** error)
   bfd_set_section_vma (sec, (bfd_vma) buffer);
   if (G_UNLIKELY (!result))
     {
-      g_free (buffer);
+      _g_free0 (buffer);
       enum bfd_error err = bfd_get_error ();
       const gchar* msg = bfd_strerror (err);
       throw (BFC_CODEGEN_ERROR_FAILED, msg);
     }
 
   result =
-  bfd_set_section_alignment (sec, 8);
+  bfd_set_section_alignment (sec, ALIGNMENT);
   if (G_UNLIKELY (!result))
     {
-      g_free (buffer);
+      _g_free0 (buffer);
       enum bfd_error err = bfd_get_error ();
       const gchar* msg = bfd_strerror (err);
       throw (BFC_CODEGEN_ERROR_FAILED, msg);
@@ -186,7 +177,7 @@ bfc_codegen_x86_64_class_dump (BfcCodegen* pself, gpointer abfd, GError** error)
   bfd_set_section_flags (sec, SEC_CODE | SEC_LOAD | SEC_READONLY | SEC_HAS_CONTENTS);
   if (G_UNLIKELY (!result))
     {
-      g_free (buffer);
+      _g_free0 (buffer);
       enum bfd_error err = bfd_get_error ();
       const gchar* msg = bfd_strerror (err);
       throw (BFC_CODEGEN_ERROR_FAILED, msg);
@@ -194,17 +185,17 @@ bfc_codegen_x86_64_class_dump (BfcCodegen* pself, gpointer abfd, GError** error)
 
   {
     asymbol* symbol = NULL;
-    bfd* _bfd = abfd;
+    bfd* abfd_ = abfd;
     guint i;
 
     asymbol** symtab = g_new (asymbol*, globl__MAX);
 
     for (i = 0; i < globl__MAX; i++)
     {
-      symbol = bfd_make_empty_symbol (_bfd);
+      symbol = bfd_make_empty_symbol (abfd_);
       if (G_UNLIKELY (symbol == NULL))
         {
-          g_free (buffer);
+          _g_free0 (buffer);
           enum bfd_error err = bfd_get_error ();
           const gchar* msg = bfd_strerror (err);
           throw (BFC_CODEGEN_ERROR_FAILED, msg);
@@ -222,7 +213,7 @@ bfc_codegen_x86_64_class_dump (BfcCodegen* pself, gpointer abfd, GError** error)
 
   result =
   bfd_set_section_contents (abfd, sec, buffer, 0, codesz);
-  g_free (buffer);
+  _g_free0 (buffer);
 
   if (G_UNLIKELY (!result))
     {
