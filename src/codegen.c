@@ -52,7 +52,6 @@ bfc_codegen_arch_get_type (void)
       static const GEnumValue values[] =
       {
         { BFC_CODEGEN_ARCH_X86_64, "BFC_CODEGEN_ARCH_X86_64", "x86_64" },
-        { BFC_CODEGEN_ARCH_I386, "BFC_CODEGEN_ARCH_I386", "i386" },
         {0, NULL, NULL},
       };
 
@@ -164,7 +163,6 @@ bfc_codegen_init (BfcCodegen* self)
 GType bfc_codegen_##name##_get_type (void) G_GNUC_CONST;
 
 BACKEND (x86_64)
-BACKEND (i386)
 
 gpointer
 bfc_codegen_new (BfcCodegenArch arch)
@@ -176,8 +174,8 @@ bfc_codegen_new (BfcCodegenArch arch)
   case BFC_CODEGEN_ARCH_X86_64:
     g_type = bfc_codegen_x86_64_get_type ();
     break;
-  case BFC_CODEGEN_ARCH_I386:
-    g_type = bfc_codegen_i386_get_type ();
+  default:
+    g_error ("Unknown architecture of index %i", (gint) arch);
     break;
   }
 

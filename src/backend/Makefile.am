@@ -35,7 +35,6 @@ VOID=
 #
 
 EXTRA_DIST+=\
-	std-i386.h \
 	std-x86_64.h \
 	$(VOID)
 
@@ -46,11 +45,9 @@ EXTRA_DIST+=\
 noinst_LTLIBRARIES=libbundle.la
 pkglib_LTLIBRARIES=\
 	libstd-x86_64.la \
-	libstd-i386.la \
 	$(VOID)
 
 libbundle_la_SOURCES=\
-	i386.c \
 	x86_64.c \
   $(VOID)
 libbundle_la_CFLAGS=\
@@ -86,21 +83,6 @@ libstd_x86_64_la_LDFLAGS=\
 	-version-info ${PACKAGE_VERSION_MAYOR}:${PACKAGE_VERSION_MINOR}:${PACKAGE_VERSION_MICRO} \
 	-static \
 	-m64 \
-	$(VOID)
-
-libstd_i386_la_SOURCES=\
-	std-x86_64.c \
-	$(VOID)
-libstd_i386_la_CFLAGS=\
-	$(VOID)
-libstd_i386_la_LIBADD=\
-	$(VOID)
-libstd_i386_la_LDFLAGS=\
-	-rpath ${pkglibdir} \
-	-release ${PACKAGE_RELEASE} \
-	-version-info ${PACKAGE_VERSION_MAYOR}:${PACKAGE_VERSION_MINOR}:${PACKAGE_VERSION_MICRO} \
-	-static \
-	-m32 \
 	$(VOID)
 
 #
