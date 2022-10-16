@@ -14,55 +14,95 @@
 # You should have received a copy of the GNU General Public License
 # along with bfc (BrainFuck Compiler). If not, see <http://www.gnu.org/licenses/>.
 #
+
 AC_PREREQ([2.69])
 
-m4_define([p_VERSION], [0.1.0.0])
-m4_define([p_RELEASE], [alpha])
+#
+# Take version information
+# Extract mayor, minor and micro version
+# numbers from version string
+# Also define release type
+#
 
-AC_INIT([bfc], [p_VERSION], [bfc.bugs@hcktm.com], [bfc], [https://www.hcktm.com/bfc/])
+m4_define([v_VERSION], m4_esyscmd_s([git describe]))
+m4_define([v_MAJOR], m4_esyscmd_s([git describe | sed -e 's/^v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\-\([a-z]*\).*/\1/']))
+m4_define([v_MINOR], m4_esyscmd_s([git describe | sed -e 's/^v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\-\([a-z]*\).*/\2/']))
+m4_define([v_MICRO], m4_esyscmd_s([git describe | sed -e 's/^v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\-\([a-z]*\).*/\3/']))
+m4_define([v_STAGE], m4_esyscmd_s([git describe | sed -e 's/^v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\-\([a-z]*\).*/\4/']))
+
+#
+# autoconf
+#
+
+AC_INIT([bfc], [v_VERSION], [bfc.bugs@hcktm.com], [bfc], [https://github.com/MarcosHCK/bfc/])
 AC_CONFIG_SRCDIR([src/bfc.c])
 AC_LANG([C])
 
 #
-# Configure aclocal path
+# aclocal
 #
+
 AC_CONFIG_MACRO_DIRS([m4])
 
 #
 # Setup default cross-compiling
 # environment mechanics
 #
+
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
 #
-# Automake
+# automake
 #
+
 AM_INIT_AUTOMAKE([subdir-objects])
 
 #
-# Extract mayor, minor and micro version
-# numbers from version string
-# Also define release type
+# Custom build options
 #
-m4_define([vernum_pattern],[\(@<:@0-9@:>@*\)])
 
-AC_SUBST([PACKAGE_VERSION_MAYOR])
-PACKAGE_VERSION_MAYOR=$(echo "$PACKAGE_VERSION" | sed -e 's/vernum_pattern\.vernum_pattern\.vernum_pattern\.vernum_pattern/\1/')
-AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MAYOR], ["$PACKAGE_VERSION_MAYOR"], [Version mayor number])
-AC_SUBST([PACKAGE_VERSION_MINOR])
-PACKAGE_VERSION_MINOR=$(echo "$PACKAGE_VERSION" | sed -e 's/vernum_pattern\.vernum_pattern\.vernum_pattern\.vernum_pattern/\2/')
-AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MINOR], ["$PACKAGE_VERSION_MINOR"], [Version minor number])
-AC_SUBST([PACKAGE_VERSION_MICRO])
-PACKAGE_VERSION_MICRO=$(echo "$PACKAGE_VERSION" | sed -e 's/vernum_pattern\.vernum_pattern\.vernum_pattern\.vernum_pattern/\3/')
-AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MICRO], ["$PACKAGE_VERSION_MICRO"], [Version micro number])
-AC_SUBST([PACKAGE_VERSION_BUILD])
-PACKAGE_VERSION_BUILD=$(echo "$PACKAGE_VERSION" | sed -e 's/vernum_pattern\.vernum_pattern\.vernum_pattern\.vernum_pattern/\4/')
-AC_DEFINE_UNQUOTED([PACKAGE_VERSION_BUILD], ["$PACKAGE_VERSION_BUILD"], [Version build number])
+AC_ARG_ENABLE(
+  [debug],
+  [AS_HELP_STRING(
+    [--enable-debug],
+    [Enable debug object output @<:@default=no@:>@])],
+  [AM_CONDITIONAL([DEBUG], [test "x$enableval" != "xno"])
+   if test "x$enableval" != "xno"; then
+    AC_DEFINE([DEBUG], [1], [Debugging enabled])
+    AC_SUBST([DEBUG], [1])
+   else
+    AC_DEFINE([DEBUG], [0], [Debugging disabled])
+    AC_SUBST([DEBUG], [0])
+   fi],
+  [ AC_DEFINE([DEBUG], [0], [Debugging disabled])
+    AC_SUBST([DEBUG], [0])])
 
-AC_DEFINE([PACKAGE_RELEASE], ["p_RELEASE"], [Release tag])
-AC_SUBST([PACKAGE_RELEASE], [p_RELEASE])
+AC_ARG_ENABLE(
+  [developer],
+  [AS_HELP_STRING(
+    [--enable-developer],
+    [Enable developer features @<:@default=no@:>@])],
+  [AM_CONDITIONAL([DEVELOPER], [test "x$enableval" != "xno"])
+   if test "x$enableval" != "xno"; then
+    AC_DEFINE([DEVELOPER], [1], [Developer features enabled])
+    AC_SUBST([DEVELOPER], [1])
+   else
+    AC_DEFINE([DEVELOPER], [0], [Developer features disabled])
+    AC_SUBST([DEVELOPER], [0])
+   fi],
+  [ AC_DEFINE([DEVELOPER], [0], [Developer features disabled])
+    AC_SUBST([DEVELOPER], [0])])
+
+AC_SUBST([PACKAGE_VERSION_MAJOR], [v_MAJOR])
+AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MAJOR], [v_MAJOR], [Version mayor number])
+AC_SUBST([PACKAGE_VERSION_MINOR], [v_MINOR])
+AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MINOR], [v_MINOR], [Version minor number])
+AC_SUBST([PACKAGE_VERSION_MICRO], [v_MICRO])
+AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MICRO], [v_MICRO], [Version micro number])
+AC_SUBST([PACKAGE_RELEASE], ["v_STAGE"])
+AC_DEFINE([PACKAGE_RELEASE], ["v_STAGE"], [Release stage])
 
 #
 #  Checks for programs we'll
@@ -72,10 +112,8 @@ AC_SUBST([PACKAGE_RELEASE], [p_RELEASE])
 LT_PREREQ([2.4.6])
 LT_INIT
 
-AM_PROG_AS
 AC_PROG_AWK
 AC_PROG_CC
-AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -84,13 +122,23 @@ AC_PROG_RANLIB
 
 PKG_PROG_PKG_CONFIG
 
-AC_ARG_VAR([LUA])
-AC_PATH_PROGS([LUA], [luajit lua lua5.1 lua5.2 lua5.3], [no])
-if test "x$LUA" = "xno"; then
-  AC_MSG_FAILURE([No Lua interpreter found on your system])
+AC_CHECK_TOOL([LLVM_CONFIG], [llvm-config-14], [no])
+if test "x$LLVM_CONFIG" = "xno"; then
+  AC_CHECK_TOOL([LLVM_CONFIG], [llvm-config], [no])
+  if test "x$LLVM_CONFIG" = "xno"; then
+    AC_MSG_FAILURE([llvm-config not found our your system])
+  else
+    LLVM_CFLAGS=`$LLVM_CONFIG --cflags`
+    AC_SUBST([LLVM_CFLAGS], [])
+    LLVM_LIBS=`$LLVM_CONFIG -- libs`
+    AC_SUBST([LLVM_LIBS], [])
+  fi
+else
+  LLVM_CFLAGS=`$LLVM_CONFIG --cflags`
+  AC_SUBST([LLVM_CFLAGS], [])
+  LLVM_LIBS=`$LLVM_CONFIG --libs`
+  AC_SUBST([LLVM_LIBS], [])
 fi
-
-AC_SUBST([DYNASM], [\${LUA}\ \${top_builddir}/src/dynasm/dynasm.lua])
 
 #
 # Custom build options
@@ -167,11 +215,10 @@ AC_CHECK_FUNCS([memset])
 # Prepare output
 #
 
-AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
-src/Makefile
-src/backend/Makefile
-Makefile
+  src/Makefile
+  Makefile
 ])
 
+AC_CONFIG_HEADERS([config.h])
 AC_OUTPUT

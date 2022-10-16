@@ -15,65 +15,27 @@
 # along with bfc (BrainFuck Compiler). If not, see <http://www.gnu.org/licenses/>.
 #
 
-#
-# Some variables
-#
-
-PACKAGE_NAME=@PACKAGE_NAME@
-PACKAGE_RELEASE=@PACKAGE_RELEASE@
-PACKAGE_VERSION_MAYOR=@PACKAGE_VERSION_MAYOR@
-PACKAGE_VERSION_MINOR=@PACKAGE_VERSION_MINOR@
-PACKAGE_VERSION_MICRO=@PACKAGE_VERSION_MICRO@
-PACKAGE_VERSION_BUILD=@PACKAGE_VERSION_BUILD@
-
-EXTRA_DIST=
-CLEANFILES=
 VOID=
 
-#
-# Subdirectories
-#
-
-SUBDIRS=\
-	backend \
+bin_PROGRAMS=\
+	bfc \
 	$(VOID)
 
-#
-# Extras
-#
-
-EXTRA_DIST+=\
-	dynasm/Readme.md \
-	bfd_error.h \
-	codegen.h \
-	dynasm.h \
-	options.h \
+noinst_HEADERS=\
 	$(VOID)
-
-#
-# Binaries and libraries
-#
-
-bin_PROGRAMS=bfc
 
 bfc_SOURCES=\
 	bfc.c \
-	bfcc.c \
-	bfl.c \
-	codegen.c \
 	main.c \
-	options.c \
 	$(VOID)
 bfc_CFLAGS=\
 	-DG_LOG_DOMAIN=\"Bfc\" \
-	-DABSTOPBUILDDIR=\"${abs_top_builddir}\" \
-	-DPKGLIBDIR=\"${pkglibdir}\" \
 	$(GIO_CFLAGS) \
 	$(GLIB_CFLAGS) \
+	$(GOBJECT_CFLAGS) \
 	$(VOID)
 bfc_LDADD=\
-	backend/libbundle.la \
-	-lbfd \
 	$(GIO_LIBS) \
 	$(GLIB_LIBS) \
+	$(GOBJECT_LIBS) \
 	$(VOID)
