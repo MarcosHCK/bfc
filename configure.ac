@@ -114,6 +114,7 @@ LT_INIT
 
 AC_PROG_AWK
 AC_PROG_CC
+AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -127,18 +128,15 @@ if test "x$LLVM_CONFIG" = "xno"; then
   AC_CHECK_TOOL([LLVM_CONFIG], [llvm-config], [no])
   if test "x$LLVM_CONFIG" = "xno"; then
     AC_MSG_FAILURE([llvm-config not found our your system])
-  else
-    LLVM_CFLAGS=`$LLVM_CONFIG --cflags`
-    AC_SUBST([LLVM_CFLAGS], [])
-    LLVM_LIBS=`$LLVM_CONFIG -- libs`
-    AC_SUBST([LLVM_LIBS], [])
   fi
-else
-  LLVM_CFLAGS=`$LLVM_CONFIG --cflags`
-  AC_SUBST([LLVM_CFLAGS], [])
-  LLVM_LIBS=`$LLVM_CONFIG --libs`
-  AC_SUBST([LLVM_LIBS], [])
 fi
+
+LLVM_CFLAGS=`$LLVM_CONFIG --cflags`
+AC_SUBST([LLVM_CFLAGS], [])
+LLVM_CXXFLAGS=`$LLVM_CONFIG --cxxflags`
+AC_SUBST([LLVM_CXXFLAGS], [])
+LLVM_LIBS=`$LLVM_CONFIG --libs`
+AC_SUBST([LLVM_LIBS], [])
 
 #
 # Custom build options

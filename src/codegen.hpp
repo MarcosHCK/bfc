@@ -15,15 +15,8 @@
  * along with bfc (BrainFuck Compiler).  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include <config.h>
-#include <glib.h>
+#ifndef __BFC_CODEGEN__
+#define __BFC_CODEGEN__ 1
+#include <bfc.h>
 
-#define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
-
-int
-main (int argc, char* argv[])
-{
-  GOptionContext* context = NULL;
-  GError* tmp_err = NULL;
-return 0;
-}
+#endif // __BFC_CODEGEN__

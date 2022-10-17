@@ -22,20 +22,35 @@ bin_PROGRAMS=\
 	$(VOID)
 
 noinst_HEADERS=\
+	bfc.h \
+	codegen.hpp \
+	collect.h \
+	stream.hpp \
 	$(VOID)
 
 bfc_SOURCES=\
 	bfc.c \
-	main.c \
+	codegen.cpp \
+	collect.c \
+	stream.cpp \
 	$(VOID)
 bfc_CFLAGS=\
 	-DG_LOG_DOMAIN=\"Bfc\" \
 	$(GIO_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(GOBJECT_CFLAGS) \
+	$(LLVM_CFLAGS) \
+	$(VOID)
+bfc_CXXFLAGS=\
+	-DG_LOG_DOMAIN=\"Bfc\" \
+	$(GIO_CFLAGS) \
+	$(GLIB_CFLAGS) \
+	$(GOBJECT_CFLAGS) \
+	$(LLVM_CXXFLAGS) \
 	$(VOID)
 bfc_LDADD=\
 	$(GIO_LIBS) \
 	$(GLIB_LIBS) \
 	$(GOBJECT_LIBS) \
+	$(LLVM_LIBS) \
 	$(VOID)
